@@ -1,0 +1,67 @@
+#!/usr/bin/env condor_submit
+# HTCondor submit file for the full H→ZZ→4l STXS analysis pipeline.
+#
+# Default: run the complete pipeline for a single method.
+# Override METHOD / FROM_STAGE at submission time:
+#
+#   condor_submit run_pipeline.sub METHOD=BDT
+#   condor_submit run_pipeline.sub METHOD=all FROM_STAGE=categorise
+#   condor_submit run_pipeline.sub METHOD=GATO FROM_STAGE=scan SKIP_TRAIN=1
+#
+# To submit all four methods as independent parallel jobs (after the filter
+# stage has already been run):
+#
+#   condor_submit run_pipeline.sub \
+#       METHOD=CutBased FROM_STAGE=categorise SKIP_TRAIN=1
+#   condor_submit run_pipeline.sub \
+#       METHOD=BDT      FROM_STAGE=categorise SKIP_TRAIN=0
+#   condor_submit run_pipeline.sub \
+#       METHOD=DNN      FROM_STAGE=categorise SKIP_TRAIN=0
+#   condor_submit run_pipeline.sub \
+#       METHOD=GATO     FROM_STAGE=categorise SKIP_TRAIN=0
+
+# ---------------------------------------------------------------------------
+# Macros with defaults (override on the condor_submit command line)
+# ---------------------------------------------------------------------------
+METHOD      = GATO
+FROM_STAGE  = filter
+SKIP_TRAIN  = 0
+
+# ---------------------------------------------------------------------------
+# Executable and arguments
+# ---------------------------------------------------------------------------
+executable  = /afs/cern.ch/work/z/zhiheng/Thesis/HZZAnalysis/run_pipeline.sh
+
+# Build the argument string; append --skip-train only when requested.
+# HTCondor evaluates the ClassAd expression: non-zero SKIP_TRAIN adds the flag.
+arguments   = --method $(METHOD) --from $(FROM_STAGE) $(if $(SKIP_TRAIN)==1, --skip-train,)
+
+# ---------------------------------------------------------------------------
+# I/O
+# ---------------------------------------------------------------------------
+output      = /afs/cern.ch/work/z/zhiheng/Thesis/HZZAnalysis/logs/pipeline.$(METHOD).$(ClusterId).$(ProcId).out
+error       = /afs/cern.ch/work/z/zhiheng/Thesis/HZZAnalysis/logs/pipeline.$(METHOD).$(ClusterId).$(ProcId).err
+log         = /afs/cern.ch/work/z/zhiheng/Thesis/HZZAnalysis/logs/pipeline.$(METHOD).$(ClusterId).log
+
+# ---------------------------------------------------------------------------
+# Resources
+# ---------------------------------------------------------------------------
+request_cpus    = 4
+request_memory  = 16 GB
+request_gpus    = 1
+
+# Require a GPU with at least 32 GB VRAM (needed for BDT Optuna tuning and
+# GATO / DNN training; ~40 GB in practice on A100 nodes at CERN).
+Requirements    = (GPUs_GlobalMemoryMb >= 32768)
+
+# ---------------------------------------------------------------------------
+# Job duration
+# Full pipeline (filter + training + scans) can take several days.
+# ---------------------------------------------------------------------------
++JobFlavour     = "nextweek"
+
+# Keep job in the queue on failure for inspection.
+on_exit_hold    = (ExitCode =!= 0)
+on_exit_hold_reason = strcat("Job exited with code ", ExitCode)
+
+queue 1

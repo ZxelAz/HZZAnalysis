@@ -1,0 +1,17 @@
+#!/usr/bin/env condor_submit
+# HTCondor submit file for main training run
+
+executable              = /afs/cern.ch/work/z/zhiheng/Thesis/gato-hep/HZZ_analysis/run_GATO.sh
+
+# Output files
+output                  = /afs/cern.ch/work/z/zhiheng/Thesis/gato-hep/HZZ_analysis/logs/run.$(ClusterId).$(ProcId).out
+error                   = /afs/cern.ch/work/z/zhiheng/Thesis/gato-hep/HZZ_analysis/logs/run.$(ClusterId).$(ProcId).err
+log                     = /afs/cern.ch/work/z/zhiheng/Thesis/gato-hep/HZZ_analysis/logs/run.$(ClusterId).log
+
+# Request GPU resources
+request_gpus            = 1
+Requirements            = GPUs_GlobalMemoryMb >= 40000
+
+# Queue the job
++JobFlavour = "tomorrow"
+queue 1

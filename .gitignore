@@ -1,0 +1,31 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# Large artefacts (regenerated on demand)
+**/Models/*
+!**/Models/.gitkeep
+**/Results/*/*
+!**/Results/*/.gitkeep
+**/Plots/*
+!**/Plots/.gitkeep
+**/logs/
+**/Trained_models/
+
+# Binary outputs
+*.pkl
+*.pt
+*.h5
+*.npz
+*.root
+*.pdf
+*.png
+*.csv
+*.log
+
+# CMSSW (pre-built, ~567 MB — obtained separately via cp -a from Thesis/CMSSW_14_1_0_pre4/)
+InferenceModel/CMSSW_14_1_0_pre4/
+
+# Editor / IDE
+.vscode/
+.idea/
